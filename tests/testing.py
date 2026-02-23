@@ -1,5 +1,5 @@
 import subprocess
-from typing import List
+from typing import List, Optional
 import os
 import collections
 import time
@@ -237,7 +237,7 @@ class MiniTestFramework:
 
             if isinstance(e, UnexpectedOutputException):
                 self.print_failure(
-                    f" {method} encountered unexpeted output: \"{e.actual}\" when output matching \"{e.expected}\" was expected"
+                    f" {method} encountered unexpected output: \"{e.actual}\" when output matching \"{e.expected}\" was expected"
                 )
 
             if isinstance(e, AssertionError):
@@ -295,12 +295,12 @@ class Stockfish:
         self,
         prefix: List[str],
         path: str,
-        args: List[str] = [],
+        args: Optional[List[str]] = None,
         cli: bool = False,
     ):
         self.path = path
         self.process = None
-        self.args = args
+        self.args = args or []
         self.cli = cli
         self.prefix = prefix
         self.output = []
@@ -412,8 +412,18 @@ class Stockfish:
 
     def close(self):
         if self.process:
-            self.process.stdin.close()
-            self.process.stdout.close()
-            return self.process.wait()
+            stdin = getattr(self.process, "stdin", None)
+            if stdin:
+                stdin.close()
+
+            stdout = getattr(self.process, "stdout", None)
+            if stdout:
+                stdout.close()
+
+            wait = getattr(self.process, "wait", None)
+            if callable(wait):
+                return wait()
+
+            return getattr(self.process, "returncode", 0)
 
         return 0
