@@ -596,7 +596,9 @@ std::string UCIEngine::move(Move m, bool chess960) {
 
 
 std::string UCIEngine::to_lower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), [](auto c) { return std::tolower(c); });
+    std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
 
     return str;
 }
