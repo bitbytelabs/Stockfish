@@ -146,8 +146,15 @@ bool is_shuffling(Move move, Stack* const ss, const Position& pos) {
         return false;
     if (pos.state()->pliesFromNull <= 6 || ss->ply < 19)
         return false;
-    return move.from_sq() == (ss - 2)->currentMove.to_sq()
-        && (ss - 2)->currentMove.from_sq() == (ss - 4)->currentMove.to_sq();
+
+    const Move previousMove      = (ss - 2)->currentMove;
+    const Move previousReplyMove = (ss - 4)->currentMove;
+
+    if (!move.is_ok() || !previousMove.is_ok() || !previousReplyMove.is_ok())
+        return false;
+
+    return move.from_sq() == previousMove.to_sq()
+        && previousMove.from_sq() == previousReplyMove.to_sq();
 }
 
 }  // namespace
