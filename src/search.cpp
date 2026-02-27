@@ -548,7 +548,7 @@ void Search::Worker::do_move(Position& pos, const Move move, StateInfo& st, Stac
 
 void Search::Worker::do_move(
   Position& pos, const Move move, StateInfo& st, const bool givesCheck, Stack* const ss) {
-    bool capture = pos.capture_stage(move);
+    const bool capture = pos.capture_stage(move);
     // Preferable over fetch_add to avoid locking instructions
     nodes.store(nodes.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 
@@ -557,11 +557,11 @@ void Search::Worker::do_move(
 
     if (ss != nullptr)
     {
+        const Square to   = move.to_sq();
+        const Piece  piece = dirtyPiece.pc;
         ss->currentMove = move;
-        ss->continuationHistory =
-          &continuationHistory[ss->inCheck][capture][dirtyPiece.pc][move.to_sq()];
-        ss->continuationCorrectionHistory =
-          &continuationCorrectionHistory[dirtyPiece.pc][move.to_sq()];
+        ss->continuationHistory = &continuationHistory[ss->inCheck][capture][piece][to];
+        ss->continuationCorrectionHistory = &continuationCorrectionHistory[piece][to];
     }
 }
 
