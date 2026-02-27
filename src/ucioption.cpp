@@ -20,15 +20,33 @@
 
 #include <algorithm>
 #include <cassert>
+#include <charconv>
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <sstream>
+#include <string_view>
 #include <utility>
 
 #include "misc.h"
 
 namespace Stockfish {
+
+namespace {
+
+std::optional<int> parse_integer(std::string_view str) {
+    int value = 0;
+
+    const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
+
+    if (ec != std::errc() || ptr != str.data() + str.size())
+        return std::nullopt;
+
+    return value;
+}
+
+}  // namespace
 
 bool CaseInsensitiveLess::operator()(const std::string& s1, const std::string& s2) const {
 
@@ -152,9 +170,11 @@ Option& Option::operator=(const std::string& v) {
 
     assert(!type.empty());
 
+    const auto parsedSpinValue = type == "spin" ? parse_integer(v) : std::optional<int>{};
+
     if ((type != "button" && type != "string" && v.empty())
         || (type == "check" && v != "true" && v != "false")
-        || (type == "spin" && (std::stoi(v) < min || std::stoi(v) > max)))
+        || (type == "spin" && (!parsedSpinValue || *parsedSpinValue < min || *parsedSpinValue > max)))
         return *this;
 
     if (type == "combo")
